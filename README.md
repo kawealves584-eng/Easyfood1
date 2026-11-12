@@ -40,6 +40,9 @@ O **EasyFood** foi estruturado em camadas para separar claramente as responsabil
 | Autenticação | `src/modules/auth` | Login, registro e proteção de rotas |
 | Aplicação | `src/app.js` | Configuração do Express |
 | Entrada | `server.js` | Inicialização do servidor |
+| Front-end | `public/` | Interface web (HTML/CSS/JS) que consome a API |
+
+Cada módulo segue a divisão **routes → controller → service**, isolando o roteamento, o tratamento da requisição e as regras de negócio.
 
 ---
 
@@ -51,6 +54,7 @@ O **EasyFood** foi estruturado em camadas para separar claramente as responsabil
 - **MySQL** — banco de dados relacional
 - **JWT** — autenticação baseada em token
 - **bcryptjs** — hash de senhas
+- **cors** — liberação de requisições do front-end
 - **dotenv** — variáveis de ambiente
 
 ---
@@ -75,12 +79,18 @@ Antes de começar, garanta que você tem:
 npm install
 ```
 
-**3.** Configure o arquivo `.env` com a URL do banco e o segredo JWT:
+**3.** Crie o arquivo `.env` a partir do exemplo e preencha com a URL do banco e o segredo JWT:
+
+```bash
+cp .env.example .env
+```
 
 ```env
 DATABASE_URL="mysql://usuario:senha@localhost:3306/easyfood"
 JWT_SECRET="troque-por-uma-chave-longa-e-aleatoria"
 ```
+
+> O arquivo `.env` não é versionado (já está no `.gitignore`). Use o `.env.example` como referência.
 
 ---
 
@@ -108,6 +118,8 @@ A aplicação estará disponível em:
 ```
 http://localhost:3000
 ```
+
+> O **front-end** é servido automaticamente em `http://localhost:3000` (arquivos de `public/`), e a **API** responde em `/restaurants` e `/auth`.
 
 ---
 
@@ -170,19 +182,28 @@ Authorization: Bearer SEU_TOKEN
 
 ```text
 .
-├── adrs/
 ├── prisma/
+│   └── schema.prisma               # Models Restaurant e User (MySQL)
 ├── public/
+│   └── index.html                  # Front-end que consome a API
 ├── src/
-│   ├── app.js
+│   ├── app.js                      # Express: middlewares, estáticos e rotas
 │   ├── database/
-│   │   └── prisma.js
+│   │   └── prisma.js               # Instância do Prisma Client
 │   └── modules/
 │       ├── auth/
+│       │   ├── auth.controller.js
+│       │   ├── auth.middleware.js  # Proteção de rotas via Bearer token
+│       │   ├── auth.routes.js
+│       │   └── auth.service.js     # register / login / me (bcrypt + JWT)
 │       └── restaurants/
-├── .env
+│           ├── restaurant.controller.js
+│           ├── restaurant.routes.js
+│           └── restaurant.service.js
+├── .env.example                    # Modelo das variáveis de ambiente
+├── .gitignore
 ├── package.json
-├── server.js
+├── server.js                       # Ponto de entrada (require ./src/app)
 └── README.md
 ```
 
